@@ -55,10 +55,8 @@ from open_webui.config import (
     ORACLE_DB_POOL_MAX,
     ORACLE_DB_POOL_INCREMENT,
 )
-from open_webui.env import SRC_LOG_LEVELS
 
 log = logging.getLogger(__name__)
-log.setLevel(SRC_LOG_LEVELS["RAG"])
 
 
 class Oracle23aiClient(VectorDBBase):
@@ -717,7 +715,7 @@ class Oracle23aiClient(VectorDBBase):
         )
 
         try:
-            limit = limit or 1000
+            limit = 1000  # Hardcoded limit for get operation
 
             with self.get_connection() as connection:
                 with connection.cursor() as cursor:
