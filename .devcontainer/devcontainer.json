@@ -1,0 +1,42 @@
+{
+  "name": "chat.maaz.sh - Kind Development",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "dockerDashComposeVersion": "v2"
+    },
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+      "kubectl": "latest",
+      "helm": "latest",
+      "minikube": "none"
+    },
+    "ghcr.io/devcontainers-extra/features/kind:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "ms-kubernetes-tools.vscode-kubernetes-tools"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  },
+  "forwardPorts": [6443],
+  "portsAttributes": {
+    "6443": {
+      "label": "Kubernetes API",
+      "protocol": "https"
+    },
+    "30000-32767": {
+      "label": "NodePort Services",
+      "onAutoForward": "ignore"
+    }
+  },
+  "remoteUser": "vscode",
+  "postCreateCommand": "echo '✅ Devcontainer ready! Run: kind create cluster'"
+}

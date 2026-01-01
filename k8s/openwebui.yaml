@@ -1,0 +1,137 @@
+# Open WebUI Kubernetes Resources
+# Generated from Helm chart: open-webui-8.22.0
+# App Version: 0.6.43
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openwebui
+  labels:
+    kubernetes.io/metadata.name: openwebui
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openai-api-key
+  namespace: openwebui
+type: Opaque
+stringData:
+  OPENAI_API_KEY: "YOUR_OPENAI_API_KEY_HERE"  # Replace with your actual key
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: open-webui
+  namespace: openwebui
+  labels:
+    app.kubernetes.io/component: open-webui
+    app.kubernetes.io/instance: open-webui
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-webui
+  namespace: openwebui
+  labels:
+    app.kubernetes.io/component: open-webui
+    app.kubernetes.io/instance: open-webui
+    app.kubernetes.io/name: open-webui
+    app.kubernetes.io/version: 0.6.43
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      nodePort: 30080
+      protocol: TCP
+  selector:
+    app.kubernetes.io/component: open-webui
+    app.kubernetes.io/instance: open-webui
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: open-webui
+  namespace: openwebui
+  labels:
+    app.kubernetes.io/component: open-webui
+    app.kubernetes.io/instance: open-webui
+    app.kubernetes.io/name: open-webui
+    app.kubernetes.io/version: 0.6.43
+spec:
+  serviceName: open-webui
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: open-webui
+      app.kubernetes.io/instance: open-webui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: open-webui
+        app.kubernetes.io/instance: open-webui
+        app.kubernetes.io/name: open-webui
+        app.kubernetes.io/version: 0.6.43
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 30
+      initContainers:
+        - name: copy-app-data
+          image: ghcr.io/open-webui/open-webui:0.6.43
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - cp -R -n /app/backend/data/* /tmp/app-data/
+          volumeMounts:
+            - name: data
+              mountPath: /tmp/app-data
+      containers:
+        - name: open-webui
+          image: ghcr.io/open-webui/open-webui:0.6.43
+          imagePullPolicy: IfNotPresent
+          tty: true
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: ENABLE_OLLAMA_API
+              value: "False"
+            - name: OPENAI_API_BASE_URL
+              value: "https://api.openai.com/v1"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-api-key
+                  key: OPENAI_API_KEY
+            # Optional: Set these for GitHub Codespaces or custom deployments
+            # - name: WEBUI_URL
+            #   value: "https://your-codespace-url.app.github.dev"
+            # - name: CORS_ALLOW_ORIGIN
+            #   value: "*"
+          volumeMounts:
+            - name: data
+              mountPath: /app/backend/data
+          resources: {}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: open-webui
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
