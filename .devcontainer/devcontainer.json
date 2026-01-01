@@ -10,7 +10,10 @@
       "helm": "latest",
       "minikube": "none"
     },
-    "ghcr.io/devcontainers-extra/features/kind:1": {}
+    "ghcr.io/devcontainers-extra/features/kind:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
   },
   "customizations": {
     "vscode": {
